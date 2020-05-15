@@ -1,0 +1,10 @@
+nbproject
+ftpsync.settings
+tags
+bin/
+pkg/
+vendor/
+*.exe
+.*
+debug/
+demo/
