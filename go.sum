@@ -1,2 +1,4 @@
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
+github.com/weixinhost/yar.go v0.0.0-20170116030201-896d9cac4c34 h1:BKXFn0Yu1pWkE1hiKfCv90r0xHXk6twFHct7zAPj4wY=
+github.com/weixinhost/yar.go v0.0.0-20170116030201-896d9cac4c34/go.mod h1:lyxsw/abS0I218efOb3WHPhcFwGCDemTEQ8LksWDtn8=
