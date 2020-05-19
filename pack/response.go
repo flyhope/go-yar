@@ -1,6 +1,8 @@
 package pack
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 // 响应
 type StatusType int
@@ -17,6 +19,7 @@ const (
 	ErrEmptyResponse StatusType = 0x80
 )
 
+// 基础异常结构体
 type exceptionDefine struct {
 	Type    string `json:"_type"`
 	Code    int32    `json:"code"`
@@ -25,12 +28,25 @@ type exceptionDefine struct {
 	Message string `json:"message"`
 }
 
+// 供JSON解析及外部使用的异常结构体
 type Exception struct {
 	exceptionDefine
 }
 
 func (e *Exception) Error() string {
 	return e.Message
+}
+
+func (e *Exception) GetCode() int32 {
+	return e.Code
+}
+
+func (e *Exception) GetMeta() (result map[string] interface{}) {
+	result = make(map[string] interface{})
+	result["Type"] = e.Type
+	result["File"] = e.File
+	result["Line"] = e.Line
+	return result
 }
 
 func (e *Exception) UnmarshalJSON(b []byte) (err error) {
@@ -43,6 +59,7 @@ func (e *Exception) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
+// 响应结构体
 type Response struct {
 	Protocol Protocol    `json:"-" msgpack:"-"`
 	Id       uint32      `json:"i" msgpack:"i"`
