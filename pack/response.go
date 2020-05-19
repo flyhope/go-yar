@@ -19,7 +19,7 @@ const (
 
 type exceptionDefine struct {
 	Type    string `json:"_type"`
-	Code    int    `json:"code"`
+	Code    int32    `json:"code"`
 	File    string `json:"file"`
 	Line    uint   `json:"line"`
 	Message string `json:"message"`

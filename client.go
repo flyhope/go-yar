@@ -55,5 +55,10 @@ func (c *client) Send() error {
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
 	packHandler = pack.GetPackHandler(headerData.Packager)
 	bodyContent := body[pack.ProtocolLength + pack.PackagerLength:]
-	return packHandler.Decode(bodyContent, c.Response)
+	err = packHandler.Decode(bodyContent, c.Response)
+	if err != nil {
+		return err
+	}
+
+	return c.Response.Except
 }
