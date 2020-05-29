@@ -8,20 +8,28 @@ import (
 )
 
 type client struct {
-	Request *pack.Request
+	Request  *pack.Request
 	Response *pack.Response
-	Http *http.Client
+	Http     *http.Request
+	HttpClient *http.Client
 }
 
 // 初始化一个客户端
-func Client(addr string, method string, params interface{}) *client {
-	c := &client{
-		Request: pack.NewRequest(addr, method, params),
-		Response: new(pack.Response),
-		Http:  &http.Client{Timeout: time.Second},
+func Client(addr string, method string, params interface{}) (*client, error) {
+	httpRequest, err := http.NewRequest(http.MethodPost, addr, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	return c
+	httpRequest.Header.Set("User-Agent", "Go Yar Rpc-0.1")
+	c := &client{
+		Request:  pack.NewRequest(addr, method, params),
+		Response: new(pack.Response),
+		Http:     httpRequest,
+		HttpClient: &http.Client{Timeout: time.Second},
+	}
+
+	return c, nil
 }
 
 // 设置返回值结构体
@@ -44,7 +52,10 @@ func (c *client) Send() error {
 	buffer.Write(data)
 
 	// 发送请求
-	resp, err := c.Http.Post(c.Request.Addr, packHandler.ContentType(), buffer)
+	c.Http.Body = ioutil.NopCloser(buffer)
+	c.Http.Header.Set("Content-Type", packHandler.ContentType())
+
+	resp, err := c.HttpClient.Do(c.Http)
 	if err != nil {
 		return err
 	}
@@ -54,11 +65,15 @@ func (c *client) Send() error {
 	// 解析处理
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
 	packHandler = pack.GetPackHandler(headerData.Packager)
-	bodyContent := body[pack.ProtocolLength + pack.PackagerLength:]
+	bodyContent := body[pack.ProtocolLength+pack.PackagerLength:]
 	err = packHandler.Decode(bodyContent, c.Response)
 	if err != nil {
 		return err
 	}
 
-	return c.Response.Except
+	if c.Response.Except != nil {
+		return c.Response.Except
+	}
+
+	return nil
 }
