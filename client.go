@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type client struct {
+type Client struct {
 	Request  *pack.Request
 	Response *pack.Response
 	Http     *http.Request
@@ -15,14 +15,14 @@ type client struct {
 }
 
 // 初始化一个客户端
-func Client(addr string, method string, params interface{}) (*client, error) {
+func NewClient(addr string, method string, params interface{}) (*Client, error) {
 	httpRequest, err := http.NewRequest(http.MethodPost, addr, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	httpRequest.Header.Set("User-Agent", "Go Yar Rpc-0.1")
-	c := &client{
+	c := &Client{
 		Request:  pack.NewRequest(addr, method, params),
 		Response: new(pack.Response),
 		Http:     httpRequest,
@@ -33,13 +33,13 @@ func Client(addr string, method string, params interface{}) (*client, error) {
 }
 
 // 设置返回值结构体
-func (c *client) SetResponseRetStruct(retVal interface{}) *client {
+func (c *Client) SetResponseRetStruct(retVal interface{}) *Client {
 	c.Response.Retval = retVal
 	return c
 }
 
 // 开始发送请求数据
-func (c *client) Send() error {
+func (c *Client) Send() error {
 	packHandler := pack.GetPackHandler(c.Request.Protocol)
 	data, err := packHandler.Encode(c.Request)
 	if err != nil {
