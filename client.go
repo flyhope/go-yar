@@ -80,7 +80,7 @@ func (c *Client) Send() error {
 		return err
 	}
 
-	comm.Log.WithFields(logrus.Fields{"YAR": "RetVal"}).Debug(c.Response.Retval)
+	comm.Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
 	if c.Response.Except != nil {
 		return c.Response.Except
 	}
