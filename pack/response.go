@@ -22,7 +22,7 @@ const (
 // 基础异常结构体
 type exceptionDefine struct {
 	Type    string `json:"_type"`
-	Code    int32    `json:"code"`
+	Code    int32  `json:"code"`
 	File    string `json:"file"`
 	Line    uint   `json:"line"`
 	Message string `json:"message"`
@@ -41,8 +41,8 @@ func (e *Exception) GetCode() int32 {
 	return e.Code
 }
 
-func (e *Exception) GetMeta() (result map[string] interface{}) {
-	result = make(map[string] interface{})
+func (e *Exception) GetMeta() (result map[string]interface{}) {
+	result = make(map[string]interface{})
 	result["Type"] = e.Type
 	result["File"] = e.File
 	result["Line"] = e.Line

@@ -1,16 +1,18 @@
 package yar
 
 import (
+	"github.com/flyhope/go-yar/comm"
 	"github.com/flyhope/go-yar/pack"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
 
 type Client struct {
-	Request  *pack.Request
-	Response *pack.Response
-	Http     *http.Request
+	Request    *pack.Request
+	Response   *pack.Response
+	Http       *http.Request
 	HttpClient *http.Client
 }
 
@@ -23,9 +25,9 @@ func NewClient(addr string, method string, params interface{}) (*Client, error) 
 
 	httpRequest.Header.Set("User-Agent", "Go Yar Rpc-0.1")
 	c := &Client{
-		Request:  pack.NewRequest(addr, method, params),
-		Response: new(pack.Response),
-		Http:     httpRequest,
+		Request:    pack.NewRequest(addr, method, params),
+		Response:   new(pack.Response),
+		Http:       httpRequest,
 		HttpClient: &http.Client{Timeout: time.Second},
 	}
 
@@ -51,10 +53,12 @@ func (c *Client) Send() error {
 	buffer := header.Bytes()
 	buffer.Write(data)
 
-	// 发送请求
 	c.Http.Body = ioutil.NopCloser(buffer)
 	c.Http.Header.Set("Content-Type", packHandler.ContentType())
 
+	comm.Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
+
+	// 发送请求
 	resp, err := c.HttpClient.Do(c.Http)
 	if err != nil {
 		return err
@@ -67,10 +71,16 @@ func (c *Client) Send() error {
 	packHandler = pack.GetPackHandler(headerData.Packager)
 	bodyContent := body[pack.ProtocolLength+pack.PackagerLength:]
 	err = packHandler.Decode(bodyContent, c.Response)
+
+	if c.Response.Except != nil {
+		comm.Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
+	}
+
 	if err != nil {
 		return err
 	}
 
+	comm.Log.WithFields(logrus.Fields{"YAR": "RetVal"}).Debug(c.Response.Retval)
 	if c.Response.Except != nil {
 		return c.Response.Except
 	}
