@@ -76,11 +76,12 @@ func (c *Client) Send() error {
 		comm.Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
 	}
 
+	comm.Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
+
 	if err != nil {
 		return err
 	}
 
-	comm.Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
 	if c.Response.Except != nil {
 		return c.Response.Except
 	}
