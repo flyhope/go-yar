@@ -1,6 +1,7 @@
 package yar
 
 import (
+	"errors"
 	"github.com/flyhope/go-yar/comm"
 	"github.com/flyhope/go-yar/pack"
 	"github.com/sirupsen/logrus"
@@ -69,6 +70,9 @@ func (c *Client) Send() error {
 	// 解析处理
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
 	packHandler = pack.GetPackHandler(headerData.Packager)
+	if packHandler == nil {
+		return errors.New("can't unpack yar response")
+	}
 	bodyContent := body[pack.ProtocolLength+pack.PackagerLength:]
 	err = packHandler.Decode(bodyContent, c.Response)
 
