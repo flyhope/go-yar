@@ -2,7 +2,6 @@ package yar
 
 import (
 	"errors"
-	"github.com/flyhope/go-yar/comm"
 	"github.com/flyhope/go-yar/pack"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -15,6 +14,7 @@ type Client struct {
 	Response   *pack.Response
 	Http       *http.Request
 	HttpClient *http.Client
+	LogTrace   LogTrace
 }
 
 // 初始化一个客户端
@@ -57,10 +57,24 @@ func (c *Client) Send() error {
 	c.Http.Body = ioutil.NopCloser(buffer)
 	c.Http.Header.Set("Content-Type", packHandler.ContentType())
 
-	comm.Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
+	Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
 
 	// 发送请求
+	timeStart := time.Now()
 	resp, err := c.HttpClient.Do(c.Http)
+
+	// 通过接口记录跟踪日志
+	if c.LogTrace != nil {
+		timeEnd := time.Now()
+		traceData := &LogTraceData{
+			TimeStart: timeStart,
+			TimeEnd:   timeEnd,
+			Request:   c.Http,
+			Err:       err,
+		}
+		c.LogTrace.Trace(traceData)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -77,10 +91,10 @@ func (c *Client) Send() error {
 	err = packHandler.Decode(bodyContent, c.Response)
 
 	if c.Response.Except != nil {
-		comm.Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
+		Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
 	}
 
-	comm.Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
+	Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
 
 	if err != nil {
 		return err

@@ -1,7 +1,6 @@
 package yar
 
 import (
-	"github.com/flyhope/go-yar/comm"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,5 +17,5 @@ const (
 
 // 设置日志输出级别
 func SetLevel(level Level) {
-	comm.Log.SetLevel(logrus.Level(level))
+	Log.SetLevel(logrus.Level(level))
 }
