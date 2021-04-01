@@ -1,6 +1,6 @@
 module github.com/flyhope/go-yar
 
-go 1.13
+go 1.15
 
 require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

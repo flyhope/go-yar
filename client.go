@@ -1,8 +1,12 @@
 package yar
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"github.com/flyhope/go-yar/logger"
 	"github.com/flyhope/go-yar/pack"
+	"github.com/flyhope/go-yar/request"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -10,15 +14,22 @@ import (
 )
 
 type Client struct {
-	Request    *pack.Request
-	Response   *pack.Response
-	Http       *http.Request
-	HttpClient *http.Client
-	LogTrace   LogTrace
+	ctx           context.Context
+	Request       *pack.Request
+	Response      *pack.Response
+	Http          *http.Request
+	RequestClient request.Handler
+	logTrace      logger.LogTrace
 }
 
 // 初始化一个客户端
-func NewClient(addr string, method string, params interface{}) (*Client, error) {
+func NewClient(ctx context.Context, addr string, method string, params interface{}) (*Client, error) {
+	handler := &request.Http{Client: &http.Client{Timeout: time.Second}}
+	return NewWithHandler(ctx, handler, addr, method, params)
+}
+
+// 初始化一个客户端
+func NewWithHandler(ctx context.Context, requestClient request.Handler, addr string, method string, params interface{}) (*Client, error) {
 	httpRequest, err := http.NewRequest(http.MethodPost, addr, nil)
 	if err != nil {
 		return nil, err
@@ -26,13 +37,20 @@ func NewClient(addr string, method string, params interface{}) (*Client, error) 
 
 	httpRequest.Header.Set("User-Agent", "Go Yar Rpc-0.1")
 	c := &Client{
-		Request:    pack.NewRequest(addr, method, params),
-		Response:   new(pack.Response),
-		Http:       httpRequest,
-		HttpClient: &http.Client{Timeout: time.Second},
+		ctx:           ctx,
+		Request:       pack.NewRequest(addr, method, params),
+		Response:      new(pack.Response),
+		Http:          httpRequest,
+		RequestClient: requestClient,
 	}
 
 	return c, nil
+}
+
+// 设置日志追踪方法
+func (c *Client) SetLogTrace(logTrace logger.LogTrace) {
+	c.logTrace = logTrace
+	c.RequestClient.SetLog(logTrace)
 }
 
 // 设置返回值结构体
@@ -54,32 +72,18 @@ func (c *Client) Send() error {
 	buffer := header.Bytes()
 	buffer.Write(data)
 
+
 	c.Http.Body = ioutil.NopCloser(buffer)
 	c.Http.Header.Set("Content-Type", packHandler.ContentType())
+	c.Http.Header.Add("Content-Length", fmt.Sprintf("%d", buffer.Len()))
 
-	Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
+	logger.Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
 
 	// 发送请求
-	timeStart := time.Now()
-	resp, err := c.HttpClient.Do(c.Http)
-
-	// 通过接口记录跟踪日志
-	if c.LogTrace != nil {
-		timeEnd := time.Now()
-		traceData := &LogTraceData{
-			TimeStart: timeStart,
-			TimeEnd:   timeEnd,
-			Request:   c.Http,
-			Err:       err,
-		}
-		c.LogTrace.Trace(traceData)
-	}
-
+	body, err := c.RequestClient.Do(c.ctx, c.Http)
 	if err != nil {
 		return err
 	}
-
-	body, err := ioutil.ReadAll(resp.Body)
 
 	// 解析处理
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
@@ -91,10 +95,10 @@ func (c *Client) Send() error {
 	err = packHandler.Decode(bodyContent, c.Response)
 
 	if c.Response.Except != nil {
-		Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
+		logger.Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
 	}
 
-	Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
+	logger.Log.WithFields(logrus.Fields{"YAR": "BodyContent"}).Debug(string(bodyContent))
 
 	if err != nil {
 		return err
