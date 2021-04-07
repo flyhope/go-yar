@@ -19,6 +19,7 @@ type Client struct {
 	Response      *pack.Response
 	Http          *http.Request
 	RequestClient request.Handler
+	PackHandler   pack.Pack
 	logTrace      logger.LogTrace
 }
 
@@ -61,8 +62,10 @@ func (c *Client) SetResponseRetStruct(retVal interface{}) *Client {
 
 // 开始发送请求数据
 func (c *Client) Send() error {
-	packHandler := pack.GetPackHandler(c.Request.Protocol)
-	data, err := packHandler.Encode(c.Request)
+	if c.PackHandler == nil  {
+		c.PackHandler = pack.GetPackHandler(c.Request.Protocol)
+	}
+	data, err := c.PackHandler.Encode(c.Request)
 	if err != nil {
 		return err
 	}
@@ -74,7 +77,7 @@ func (c *Client) Send() error {
 
 
 	c.Http.Body = ioutil.NopCloser(buffer)
-	c.Http.Header.Set("Content-Type", packHandler.ContentType())
+	c.Http.Header.Set("Content-Type", c.PackHandler.ContentType())
 	c.Http.Header.Add("Content-Length", fmt.Sprintf("%d", buffer.Len()))
 
 	logger.Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
@@ -87,12 +90,12 @@ func (c *Client) Send() error {
 
 	// 解析处理
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
-	packHandler = pack.GetPackHandler(headerData.Packager)
-	if packHandler == nil {
+	c.PackHandler = pack.GetPackHandler(headerData.Packager)
+	if c.PackHandler == nil {
 		return errors.New("can't unpack yar response")
 	}
 	bodyContent := body[pack.ProtocolLength+pack.PackagerLength:]
-	err = packHandler.Decode(bodyContent, c.Response)
+	err = c.PackHandler.Decode(bodyContent, c.Response)
 
 	if c.Response.Except != nil {
 		logger.Log.WithFields(logrus.Fields{"YAR": "Except"}).Debug(c.Response.Except)
