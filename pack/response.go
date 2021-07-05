@@ -28,7 +28,7 @@ type exceptionDefine struct {
 	Message string `json:"message"`
 }
 
-// 供JSON解析及外部使用的异常结构体
+// Exception 供JSON解析及外部使用的异常结构体
 type Exception struct {
 	exceptionDefine
 }
@@ -59,7 +59,7 @@ func (e *Exception) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
-// 响应结构体
+// Response 响应结构体
 type Response struct {
 	Protocol Protocol    `json:"-" msgpack:"-"`
 	Id       uint32      `json:"i" msgpack:"i"`

@@ -23,13 +23,13 @@ type Client struct {
 	logTrace      logger.LogTrace
 }
 
-// 初始化一个客户端
+// NewClient 初始化一个客户端
 func NewClient(ctx context.Context, addr string, method string, params interface{}) (*Client, error) {
 	handler := &request.Http{Client: &http.Client{Timeout: time.Second}}
 	return NewWithHandler(ctx, handler, addr, method, params)
 }
 
-// 初始化一个客户端
+// NewWithHandler 初始化一个客户端
 func NewWithHandler(ctx context.Context, requestClient request.Handler, addr string, method string, params interface{}) (*Client, error) {
 	httpRequest, err := http.NewRequest(http.MethodPost, addr, nil)
 	if err != nil {
@@ -48,19 +48,19 @@ func NewWithHandler(ctx context.Context, requestClient request.Handler, addr str
 	return c, nil
 }
 
-// 设置日志追踪方法
+// SetLogTrace 设置日志追踪方法
 func (c *Client) SetLogTrace(logTrace logger.LogTrace) {
 	c.logTrace = logTrace
 	c.RequestClient.SetLog(logTrace)
 }
 
-// 设置返回值结构体
+// SetResponseRetStruct 设置返回值结构体
 func (c *Client) SetResponseRetStruct(retVal interface{}) *Client {
 	c.Response.Retval = retVal
 	return c
 }
 
-// 开始发送请求数据
+// Send 开始发送请求数据
 func (c *Client) Send() error {
 	if c.PackHandler == nil  {
 		c.PackHandler = pack.GetPackHandler(c.Request.Protocol)
@@ -70,7 +70,7 @@ func (c *Client) Send() error {
 		return err
 	}
 
-	// 拼接body
+	// write body
 	header := pack.NewHeader(c.Request.Protocol)
 	buffer := header.Bytes()
 	buffer.Write(data)
@@ -82,13 +82,13 @@ func (c *Client) Send() error {
 
 	logger.Log.WithFields(logrus.Fields{"YAR": "Request"}).Debug(string(data))
 
-	// 发送请求
+	// send request
 	body, err := c.RequestClient.Do(c.ctx, c.Http)
 	if err != nil {
 		return err
 	}
 
-	// 解析处理
+	// parse executer
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
 	c.PackHandler = pack.GetPackHandler(headerData.Packager)
 	if c.PackHandler == nil {

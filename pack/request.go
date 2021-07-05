@@ -2,7 +2,7 @@ package pack
 
 import "math/rand"
 
-// 请求结构体
+// Request struct
 type Request struct {
 	Protocol Protocol    `json:"-" msgpack:"-"`
 	Addr     string      `json:"-" msgpack:"-"`

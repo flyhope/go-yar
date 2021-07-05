@@ -5,7 +5,7 @@ import (
 	"github.com/vmihailenco/msgpack"
 )
 
-// msgpack处理器，兼容json tag定义
+// EncoderMsgpack msgpack处理器，兼容json tag定义
 type EncoderMsgpack struct {
 }
 

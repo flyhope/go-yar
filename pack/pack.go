@@ -1,6 +1,6 @@
 package pack
 
-// 请求协议
+// Protocol request protocol
 type Protocol [8]byte
 
 var (
@@ -8,14 +8,14 @@ var (
 	ProtocolMsgpack = Protocol{'M', 'S', 'G', 'P', 'A', 'C', 'K'}
 )
 
-// 定义数据编码解码接口
+// Pack define encode/decode interface
 type Pack interface {
 	Encode(*Request) ([]byte, error)
 	ContentType() string
 	Decode([]byte, *Response) error
 }
 
-// 根据协议获取编码、解码器
+// GetPackHandler 根据协议获取编码、解码器
 func GetPackHandler(protocol Protocol) Pack {
 	var result Pack
 

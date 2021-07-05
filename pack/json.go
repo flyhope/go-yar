@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 )
 
-// JSON处理器
 type EncoderJson struct {
 }
 
