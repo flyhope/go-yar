@@ -90,7 +90,9 @@ func (c *Client) Send() error {
 
 	// 解析处理
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
-	c.PackHandler = pack.GetPackHandler(headerData.Packager)
+	if c.PackHandler == nil {
+		c.PackHandler = pack.GetPackHandler(headerData.Packager)
+	}
 	if c.PackHandler == nil {
 		return errors.New("can't unpack yar response")
 	}
