@@ -18,5 +18,9 @@ func (p *EncoderJson) Decode(body []byte, response *Response) error {
 }
 
 func (p *EncoderJson) ContentType() string {
-	return "application/application/json"
+	return "application/json"
+}
+
+func (p *EncoderJson) ShowProtocol() Protocol {
+	return ProtocolJson
 }

@@ -20,7 +20,7 @@ func (p *EncoderMsgpack) Encode(request *Request) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func (p *EncoderMsgpack) Decode(body []byte, response *Response) error{
+func (p *EncoderMsgpack) Decode(body []byte, response *Response) error {
 	reader := bytes.NewReader(body)
 	decoder := msgpack.NewDecoder(reader)
 	decoder.UseJSONTag(true)
@@ -31,3 +31,6 @@ func (p *EncoderMsgpack) ContentType() string {
 	return "application/x-msgpack"
 }
 
+func (p *EncoderMsgpack) ShowProtocol() Protocol {
+	return ProtocolMsgpack
+}

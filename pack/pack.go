@@ -13,6 +13,7 @@ type Pack interface {
 	Encode(*Request) ([]byte, error)
 	ContentType() string
 	Decode([]byte, *Response) error
+	ShowProtocol() Protocol
 }
 
 // 根据协议获取编码、解码器

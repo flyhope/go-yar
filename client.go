@@ -62,7 +62,7 @@ func (c *Client) SetResponseRetStruct(retVal interface{}) *Client {
 
 // 开始发送请求数据
 func (c *Client) Send() error {
-	if c.PackHandler == nil  {
+	if c.PackHandler == nil || c.PackHandler.ShowProtocol() != c.Request.Protocol {
 		c.PackHandler = pack.GetPackHandler(c.Request.Protocol)
 	}
 	data, err := c.PackHandler.Encode(c.Request)
@@ -74,7 +74,6 @@ func (c *Client) Send() error {
 	header := pack.NewHeader(c.Request.Protocol)
 	buffer := header.Bytes()
 	buffer.Write(data)
-
 
 	c.Http.Body = ioutil.NopCloser(buffer)
 	c.Http.Header.Set("Content-Type", c.PackHandler.ContentType())
@@ -90,7 +89,7 @@ func (c *Client) Send() error {
 
 	// 解析处理
 	headerData := pack.NewHeaderWithBody(body, c.Request.Protocol)
-	if c.PackHandler == nil {
+	if c.PackHandler == nil || c.PackHandler.ShowProtocol() != headerData.Packager {
 		c.PackHandler = pack.GetPackHandler(headerData.Packager)
 	}
 	if c.PackHandler == nil {
